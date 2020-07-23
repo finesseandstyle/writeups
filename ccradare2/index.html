@@ -1,30 +1,133 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Hank Quinlan, Horrible Cop</title>
-		<!-- link to main stylesheet -->
-		<link rel="stylesheet" type="text/css" href="main.css">
+		<title>ccradare2 writeup</title>
+		<meta charset="utf-8">
+   		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+   		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="hacker.css">
 	</head>
-	<body>
-		<nav>
-    		<ul>
-        		<li><a href="/">Home</a></li>
-	        	<li><a href="/about">About</a></li>
-        		<li><a href="/cv">CV</a></li>
-        		<li><a href="/blog">Blog</a></li>
-    		</ul>
-		</nav>
-		<div class="container">
-    		<div class="blurb">
-        		<h1>Hi there, I'm Hank Quinlan!</h1>
-				<p>I'm best known as the horrible cop from <em>A Touch of Evil</em> Don't trust me. <a href="/about">Read more about my life...</a></p>
-    		</div><!-- /.blurb -->
-		</div><!-- /.container -->
-		<footer>
-    		<ul>
-        		<li><a href="mailto:hankquinlanhub@gmail.com">email</a></li>
-        		<li><a href="https://github.com/hankquinlan">github.com/hankquinlan</a></li>
-			</ul>
-		</footer>
+
+	<style>
+		ul li {
+			list-style-image: url("https://pages-themes.github.io/hacker/assets/images/bullet.png");
+		}
+		.radare2 {
+			color: rgb(206, 168, 3);
+		}
+	</style>
+
+	<body class="container">
+		<h1>CC: Radare2 Writeup</h1>
+		<a href="https://tryhackme.com/room/ccradare2">Link to the room</a>
+		<p>Hello there. This is the first time I'm doing a writeup so excuse if things aren't well explained or poorly structured.
+			Reverse engineering is a hard subject to get into specially when attemping to reverse engineer binaries without any sense of direction. </p>
+		<p>So I'll do my best to explain every task along with plenty of screenshots/snippets so you can see exactly what's going on and how to get there
+			on your own.</p> 
+
+		<p>For those new to RE, if you don't know what binaries mean, they're specifically the machine executable part of a program/app that you'll be looking into and see
+				if you can discover something interesting. Basically a fancy term for an executable. A program like radare2 will do its best to disassemble a binary and gives us information on its inner workings, like function names, strings, assembly instructions and much more. </p>
+
+		<p>This writeup will skip most exercises where you simply use the help function but I can answer some with a different take or the ones
+			that were more trouble for me.</p>
+
+			
+		<p>Anyway let's get started.</p>
+		
+		<p>First of all let's download the files that the room provides and put them in a folder for us to work with.</p>
+		
+		<p>To start up RE-ing generally you'll be using radare2 with this command</p>
+		<pre>$ radare2 -d &ltbinary-name&gt</pre>
+		<p>radare2 can also be shortned to just r2.</p>
+		<p><u>Note</u>: Binaries must be executable. Although the files that the room provides are ready to be used, if they weren't, you'd have to add permissions 
+			in order for you to start RE-ing.
+		<pre>$ chmod +x &ltbinary-name&gt</pre>
+		<hr>
+
+		<h2>[Task 2]</h2>
+
+		<p>All of these can be solved with </p>
+
+		<pre>$ r2 --help</pre>
+
+		<h2>[Task 3]</h2>
+		<h3>#4</h3>
+		<p>Let's load up the example1 binary.</p>
+		<pre>
+$ r2 -d example1
+<span class="radare2">[0x00000530]></span> aaa
+<span class="radare2">[0x00000530]></span> afl</pre>
+
+		<pre>
+0x560c5a7c5530    1 42           entry0
+0x560c5a9c5fd8    1 4132         reloc.__libc_start_main
+0x560c5a7c5560    4 50   -> 44   sym.deregister_tm_clones
+0x560c5a7c55a0    4 66   -> 57   sym.register_tm_clones
+0x560c5a7c55f0    5 50           entry.fini0
+0x560c5a7c5520    1 6            sym.imp.__cxa_finalize
+0x560c5a7c5630    4 48   -> 42   entry.init0
+0x560c5a7c54f8    3 23           sym._init
+0x560c5a7c56e0    1 1            sym.__libc_csu_fini
+0x560c5a7c56e4    1 9            sym._fini
+0x560c5a7c566b    1 7            sym.secret_func
+0x560c5a7c5680    4 93           sym.__libc_csu_init
+0x560c5a7c5660    1 11           main</pre>
+		
+		<p>Although you could easily count the functions one by one I wasn't satifised doing this way. </p>
+		<p>Thankfully, radare2 provides an easy way to count number of lines by simply appending "~?" to any command. 
+		
+		There's also another way which personally I find better since you can use this for other bash commands.
+		</p>
+		<pre><span class="radare2">[0x133713371337]></span> afl | wc -l</pre>
+
+		<p>For some reason, the count that I got is 1 more than the answer. I don't know what caused this, either one of the functions
+		is not really a function, or the answer was done from a more recent version of radare2 where the analysis counts less functions or something like that.
+		</p>
+		
+		<h3>#5</h3>
+		<p>When you're answering this, don't include sym.</p>
+		<p>Also, whenever you're doing a RE challenge, be on the lookout for functions that are in exactly this format. (no additional underscores or strings)</p>
+		<pre>sym.user_func</pre>
+
+		<h2>[Task 4]</h2>
+
+		<h3>#2 and #6</h3>
+		<p>A cool tip whenever you're searching for a string is to hide the excess information that you might not want at first.</p>
+		<p>Appending qq to most r2 commands will greatly reduce the amount of information shown at once. </p>
+		<p>This applies really well to the command that shows strings and it's very useful to know.</p>
+		<pre><span class="radare2">[0x133713371337]></span> izzqq</pre></pre>
+
+		<h2>[Task 6]</h2>
+
+		<h3>#2</h3>
+		<p>This answer really confused me at first and I spent a good chunk of time looking through every option in the p? list</p>
+		<p>Basically dissassembly means assembly instructions or opcodes.</p>
+		<p>Which then we can see the answer by looking at "disassemble N opcodes (pd) or N bytes (pD)"</p>
+
+		<h3>#4</h3>
+		<p>Unfortunately this command doesn't seem to work for me :(</p>
+		<img src="1.PNG">
+		<p>Anyway this command is very sneakily hidden and you wouldn't find it normally unless you google it.</p> 
+		<p>It can be found by using "px?"</p>
+
+		<h3>#6 and #7</h3>
+		<p>Let's finally look at some assembly code!</p>
+		<p>As usual whenever you're loading up a different binary, remember to run aaa first.</p>
+		<pre><span class="radare2">[0x133713371337]></span> pdf @ main</pre></pre>
+
+		<img src="2.PNG">
+
+		<p></p>
+
+		
+	
+		</menu>
+		
+		<hr >
+    	<ul >
+        	<li><a href="https://twitter.com/An1meHacker">Twitter</a></li>
+			<li><a href="https://github.com/an1mehacker">github.com/an1mehacker</a></li>
+			<li><a href="https://github.com/pages-themes/hacker">Hacker Theme</a></li>
+		</ul>		
 	</body>
 </html>
