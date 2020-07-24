@@ -42,15 +42,18 @@
 		<p><u>Note</u>: Binaries must be executable. Although the files that the room provides are ready to be used, if they weren't, you'd have to add permissions 
 			in order for you to start RE-ing.
 		<pre>$ chmod +x &ltbinary-name&gt</pre>
-		<hr>
+		
 
 		<h2>[Task 2]</h2>
+		<hr>
 
 		<p>All of these can be solved with </p>
 
 		<pre>$ r2 --help</pre>
 
+		
 		<h2>[Task 3]</h2>
+		<hr>
 		<h3>#4</h3>
 		<p>Let's load up the example1 binary.</p>
 		<pre>
@@ -81,7 +84,7 @@ $ r2 -d example1
 		<pre><span class="radare2">[0x133713371337]></span> afl | wc -l</pre>
 
 		<p>For some reason, the count that I got is 1 more than the answer. I don't know what caused this, either one of the functions
-		is not really a function, or the answer was done from a more recent version of radare2 where the analysis counts less functions or something like that.
+		is not really a function, or the answer was based on a more recent version of radare2 where the analysis counts less functions or something like that.
 		</p>
 		
 		<h3>#5</h3>
@@ -89,16 +92,18 @@ $ r2 -d example1
 		<p>Also, whenever you're doing a RE challenge, be on the lookout for functions that are in exactly this format. (no additional underscores or strings)</p>
 		<pre>sym.user_func</pre>
 
+		
 		<h2>[Task 4]</h2>
-
+		<hr>
 		<h3>#2 and #6</h3>
 		<p>A cool tip whenever you're searching for a string is to hide the excess information that you might not want at first.</p>
 		<p>Appending qq to most r2 commands will greatly reduce the amount of information shown at once. </p>
 		<p>This applies really well to the command that shows strings and it's very useful to know.</p>
 		<pre><span class="radare2">[0x133713371337]></span> izzqq</pre></pre>
 
+		
 		<h2>[Task 6]</h2>
-
+		<hr>
 		<h3>#2</h3>
 		<p>This answer really confused me at first and I spent a good chunk of time looking through every option in the p? list</p>
 		<p>Basically dissassembly means assembly instructions or opcodes.</p>
@@ -117,12 +122,91 @@ $ r2 -d example1
 
 		<img src="2.PNG">
 
-		<p></p>
+		<p>If you've done the suggested room, <a href="https://tryhackme.com/room/introtox8664">Intro to x86-64</a>, you'll have a good idea
+		what's happening here. An integer is assigned to each of these variables, at the lines 3 and 4, and then program finishes its execution. Pretty crazy, right?</p>
 
-		
+		<p>If you want to confirm that the values are being assigned and you want to print them out, we can use the skills learned in Task 5 - Navigating Through Memory
+		and see what's inside the variables.</p>
+
+		<pre><span class="radare2">[0x133713371337]></span> s rbp-0x4
+<span class="radare2">[0xfffffffffffc]></span> px</pre></pre>
+
+		<p>And, uh oh, I don't like the look of that address. This is because the program hasn't actually started yet. Its process stack, where it holds temporary
+		data such as methods, function parammeters, return addresses and local variables, wasn't initialized yet.</p> 
+		<p>There's no point in running any print functions because
+		there's no meaningful data to show. It's just a bunch of Fs.</p>
+
+		<p>Task 8 however will talk about this and it's one of the most important parts of RE-ing.</p>
 	
-		</menu>
+		<p>But first we need to do the Mid-term.</p>
+
+		<h2>[Task 7] - The Mid-term</h2>
+		<hr>
+
+		<p>Cool, now we have something to test all our skills up until this point. I won't be skipping any tasks here. Let's load up midterm and start analysing. 
+		</p>
+		<pre>$ r2 -d -A midterm</pre>
+
+		<h3>#1</h3>
+		<p>We know how to easily do this now but for the sake of convinience I'll show it again.</p>
+		<pre><span class="radare2">[0x133713371337]></span> afl | wc -l</pre>
+
+		<h3>#2</h3>
+
+		<p>This one we also know how to do. Show all the strings without any additional details.</p>
+		<pre><span class="radare2">[0x133713371337]></span> izzqq</pre>
+
+		<h3>#3</h3>
+		<p>We'll start off by printing the dissassembly of the secret_func.</p>
+		<pre><span class="radare2">[0x133713371337]></span> pdf @ sym.secret_func</pre>
+
+		<img src="3.PNG">
+
+		<p><u>Note:</u> Usually, in x86 systems, EAX (32-bit) register is responsible for the return address. in x86-64, it's RAX (64 bit). 
+			<a href="https://stackoverflow.com/questions/3879662/hows-return-value-implemented-in-assembly-level">Link</a>, if you want learn more about this.</p>
+
+		<p>Even without knowing this, you can figure this out since this is the only integer value being used in the function.</p>
+		<h3>#4 and #5</h3>
+		<p>Let's look at the dissassembly of the main function.</p>
+		<pre><span class="radare2">[0x133713371337]></span> pdf @ main</pre>
+		<img src="4.PNG">
+		<p>Oh hey, the comments already show us the answers! Nice.</p>
+		<h3>#6</h3>
+
+		<p>This one is a little tricky, because afl doesn't show functions in sequence of memory. You could compare each function's address but that's a huge pain. </p>
+		<p>There are different ways you can do this. </p>
+			
+		<h4>The "proper" way</h4>
+		<p>This one is probably the way that the creator of the room intended for us to use.</p>
+		<p>We simply move to the last instruction of the main function and add 1 more byte. Then print our current function. Let's do it.</p>
+		<pre><span class="radare2">[0x133713371337]></span> pdf @ main
+<span class="radare2">[0x133713371337]></span> s 0x55839a01a678
+<span class="radare2">[0x55839a01a678]></span> s+ 1
+<span class="radare2">[0x55839a01a679]></span> pdf</pre>
+		<img src="5.PNG">
+		<p>And voilà. The censored bit shows us the answer.</p>
+
+		<h4>The "creative" way</h4>
+		<p>Notice the left address column of the "afl" output. It's presented line by line with addresses being numbered like pages.  </p>
+		<p>Here's where we can use another piping trick.</p>		
+		<p>The "sort" linux command alphanumerically sorts text line by line. With this knowledge we can use afl in conjunction with sort and get the function after main.</p>
+
+		<pre><span class="radare2">[0x133713371337]></span> afl | sort</pre>
+		<p>And boom! We get the answer with a one-liner! </p>
+		<img src="6.PNG">
+		<p></p>
+		<h3>#7</h3>
+
+		<p>This answer is pretty intuitive. Usually commands in r2 have an amount you can specify. Like</p>
+		<pre><span class="radare2">[0x133713371337]></span> pd 2</pre>
+		<p>This will show only 2 lines of dissassembly.</p>
 		
+		<hr>
+
+		<p>Well, we are now halfway through! </p>
+
+		<h1>More coming soon!</h1>
+
 		<hr >
     	<ul >
         	<li><a href="https://twitter.com/An1meHacker">Twitter</a></li>
