@@ -19,19 +19,13 @@
 
 	<body class="container">
 		<h1>CC: Radare2 Writeup</h1>
+		<h6>Created on 2020-07-26</h6>
 		<a href="https://tryhackme.com/room/ccradare2">Link to the room</a>
-		<p>Hello there. This is the first time I'm doing a writeup so excuse if things aren't well explained or poorly structured.
-			Reverse engineering is a hard subject to get into specially when attemping to reverse engineer binaries without any sense of direction. </p>
-		<p>So I'll do my best to explain every task along with plenty of screenshots/snippets so you can see exactly what's going on and how to get there
-			on your own.</p> 
-
-		<p>For those new to RE, if you don't know what binaries mean, they're specifically the machine executable part of a program/app that you'll be looking into and see
-				if you can discover something interesting. Basically a fancy term for an executable. A program like radare2 will do its best to disassemble a binary and gives us information on its inner workings, like function names, strings, assembly instructions and much more. </p>
-
+		<p>Hello there. This is the first time I'm doing a writeup so excuse if things aren't well explained or poorly structured.</p>
+		<p>So I'll do my best to explain every task along with plenty of screenshots/snippets so you can see exactly what's going on and how to get there on your own.</p> 
 		<p>This writeup will skip most exercises where you simply use the help function but I can answer some with a different take or the ones
 			that were more trouble for me.</p>
-
-			
+		<hr>	
 		<p>Anyway let's get started.</p>
 		
 		<p>First of all let's download the files that the room provides and put them in a folder for us to work with.</p>
@@ -44,15 +38,15 @@
 		<pre>$ chmod +x &ltbinary-name&gt</pre>
 		
 
-		<h2>[Task 2]</h2>
+		<h2>[Task 2] - Command Line Options</h2>
 		<hr>
 
 		<p>All of these can be solved with </p>
 
-		<pre>$ r2 --help</pre>
+		<pre>$ r2 -h</pre>
 
 		
-		<h2>[Task 3]</h2>
+		<h2>[Task 3] - Analyzation</h2>
 		<hr>
 		<h3>#4</h3>
 		<p>Let's load up the example1 binary.</p>
@@ -84,7 +78,7 @@ $ r2 -d example1
 		<pre><span class="radare2">[0x133713371337]></span> afl | wc -l</pre>
 
 		<p>For some reason, the count that I got is 1 more than the answer. I don't know what caused this, either one of the functions
-		is not really a function, or the answer was based on a more recent version of radare2 where the analysis counts less functions or something like that.
+		is not considered as a function, or the answer was based on a more recent version of radare2 where the analysis counts less functions or something like that.
 		</p>
 		
 		<h3>#5</h3>
@@ -93,26 +87,26 @@ $ r2 -d example1
 		<pre>sym.user_func</pre>
 
 		
-		<h2>[Task 4]</h2>
+		<h2>[Task 4] - Information</h2>
 		<hr>
 		<h3>#2 and #6</h3>
 		<p>A cool tip whenever you're searching for a string is to hide the excess information that you might not want at first.</p>
 		<p>Appending qq to most r2 commands will greatly reduce the amount of information shown at once. </p>
 		<p>This applies really well to the command that shows strings and it's very useful to know.</p>
-		<pre><span class="radare2">[0x133713371337]></span> izzqq</pre></pre>
+		<pre><span class="radare2">[0x133713371337]></span> ___qq</pre></pre>
 
 		
-		<h2>[Task 6]</h2>
+		<h2>[Task 6] - Printing</h2>
 		<hr>
 		<h3>#2</h3>
 		<p>This answer really confused me at first and I spent a good chunk of time looking through every option in the p? list</p>
-		<p>Basically dissassembly means assembly instructions or opcodes.</p>
+		<p>Basically dissassembly means show assembly instructions or opcodes.</p>
 		<p>Which then we can see the answer by looking at "disassemble N opcodes (pd) or N bytes (pD)"</p>
 
 		<h3>#4</h3>
 		<p>Unfortunately this command doesn't seem to work for me :(</p>
 		<img src="1.PNG">
-		<p>Anyway this command is very sneakily hidden and you wouldn't find it normally unless you google it.</p> 
+		<p>Anyway this command is very sneakily hidden and I couldn't find it without googling it.</p> 
 		<p>It can be found by using "px?"</p>
 
 		<h3>#6 and #7</h3>
@@ -176,7 +170,9 @@ $ r2 -d example1
 		<p>This one is a little tricky, because afl doesn't show functions in sequence of memory. You could compare each function's address but that's a huge pain. </p>
 		<p>There are different ways you can do this. </p>
 			
-		<h4>The "proper" way</h4>
+		<ul>
+			<li><h4>The "proper" way</h4></li>
+		</ul>
 		<p>This one is probably the way that the creator of the room intended for us to use.</p>
 		<p>We simply move to the last instruction of the main function and add 1 more byte. Then print our current function. Let's do it.</p>
 		<pre><span class="radare2">[0x133713371337]></span> pdf @ main
@@ -186,7 +182,10 @@ $ r2 -d example1
 		<img src="5.PNG">
 		<p>And voilà. The censored bit shows us the answer.</p>
 
-		<h4>The "creative" way</h4>
+		<ul>
+			<li><h4>The "creative" way</h4></li>
+		</ul>
+
 		<p>Notice the left address column of the "afl" output. It's presented line by line with addresses being numbered like pages.  </p>
 		<p>Here's where we can use another piping trick.</p>		
 		<p>The "sort" linux command alphanumerically sorts text line by line. With this knowledge we can use afl in conjunction with sort and get the function after main.</p>
@@ -200,12 +199,180 @@ $ r2 -d example1
 		<p>This answer is pretty intuitive. Usually commands in r2 have an amount you can specify. Like</p>
 		<pre><span class="radare2">[0x133713371337]></span> pd 2</pre>
 		<p>This will show only 2 lines of dissassembly.</p>
-		
+		<p>I think you can figure out how do get the answer now.</p>
+		<br>
+		<p>Phew! That's half of the room done. </p>
 		<hr>
 
-		<p>Well, we are now halfway through! </p>
+		<h2>[Task 8] - Debugging </h2>
 
-		<h1>More coming soon!</h1>
+		<p>Although no exercises in this task require great explaining, this is where you should try playing around with breakpoints on your own.</p>
+		<p><u>Tip</u>: For more simple programs, good places to put breakpoints are: the first few lines of main, just before a jump instruction (highlighted as green) and at the end of a user function.</p>
+		
+
+		
+
+		<p>A good habit to get into is combining commands like "dr" and "px @ variable" every couple lines, so you can keep track of all the values and strings.</p>
+		<p>Does that sound tiring? This is where the Visual Mode might come in handy.</p>
+
+		<p>After this task, you could take a shot at trying <a href="https://tryhackme.com/room/reverseengineering">this room</a>, even if you don't complete it. It's good to always practice more.</p>
+
+		<h2>[Task 9] - Visual Mode</h2>
+
+		<p>This task personally required a bit of research in order to fully understand the basics. And you should probably do it too. Once you're pretty comfortable
+		with the normal Command Line Mode and have a bit of experience, you could try going with Visual Mode. It has a lot of functionality so check the help menu often.
+
+		<p><u>Tip</u>: Once you enter Visual Mode, press "p" twice to bring the Debugging Mode. It's what you'll be using more.</p>
+
+		<img src="7.PNG">
+
+		<p>Another thing, stepping through lines won't work if you used "s [address]" before. It will just go back to where you were before. You'd have to set a breakpoint before
+			entering Visual Mode, if you want to look at the main function, for example. </p>
+		</p>
+
+		<h2>[Task 10] - Write Mode</h2>
+
+		<h3>#4</h3>
+		<p>I had trouble getting the message to display for me. I'll show you what I've tried and the process to display it.</p>
+		<img src="8.PNG">
+		<p>First, we'll try to use the command learned in exercise #3 and do a very simple change to jump ahead in memory, the line
+			after the jne instruction. This way the program won't exit out without doing anything and will print the message.</p> 
+		<p>We're gonna target the highlighted line. We should also set up two breakpoints, one where jmp instruction ends and 
+			another before the main function ends, so we can confirm that it executes the print function.</p>
+
+		
+		<pre><span class="radare2">[0x7f0d456c6090]></span> s 0x5628a19236bf
+<span class="radare2">[0x5628a19236bf]></span> wa jmp 0x5628a19236c5
+<span class="radare2">[0x5628a19236bf]></span> db 0x5628a19236c5
+<span class="radare2">[0x5628a19236bf]></span> db 0x5628a19236dd
+<span class="radare2">[0x5628a19236bf]></span> dc
+</pre>
+
+		<p>Aaand, huh, nothing happened.</p>
+		<img src="10.PNG">
+		<p>radare2 for some reason isn't showing the output of the print function. If it showed up for you, great. Either way we could go farther and learn
+			a bit more about the Write Mode. We'll attempt to change the binary, save it and run it normally. This process, by the way, is called Binary Patching.</p>
+
+		<p>Opening with write mode is shown at Task 2, let's run it. Any issues when opening with r2 write mode or the file can be fixed by restarting
+			the terminal. This time instead of changing to a jump instruction, we'll change the value 5 to 4.</p>
+
+		<p>Once again, we'll be targeting the highlighted line.</p>
+		<pre>$ r2 -w -A example4
+<span class="radare2">[0x00000580]></span> s 0x000006bf
+<span class="radare2">[0x00000580]></span> wx 837dfc<b>04</b>
+</pre>
+		<p><u>Note</u>: changing int values in assembly instructions is easy with the "wx" command. Look at the second column of the dissassembly
+		view, it's called the encoded assembly instructions. Just like normal assembly instructions, the encoded section is also modifiable. 05 can be changed to 04. </p>
+		<img src="11.png">
+		<p>We're done, and you can exit radare2. Now we just need to run it!</p>
+
+		<img src="12.PNG">
+
+		<p>There we go. One more task remains.</p>
+
+		<h2>[Task 11] - The Final Exam</h2>
+
+		This is another classic password binary. We need to figure out the password from the binary in order to complete the task. 
+
+		<pre>$ r2 -d -A the_final_exam
+<span class="radare2">[0x133713371337]></span> pdf @ main</pre>
+		<img src="13.PNG">
+
+		<p>Immediately I can see a string named "youdidit". Very likely the password will contain something related to this.</p>
+
+		<p>Let's now assume you're at this point and you don't know what to do. How do I figure out the password? I type in "youdidit" and nothing happens.</p>
+
+		<p>Even if you don't understand the assembly code here, we should start by just listing the functions in order and have a rough idea what it does. If
+			you haven't programmed in C, you should also research the functions and see what they do and return.
+		</p>
+		<ol>
+		<li><u>call sym.imp.fgets</u> - My initial idea is that it reads from a file but to read a file you'd need the function fopen. Apparentely you can read from sources other than files like stdin. Basically, read user's input and store it in var_11h.</li>
+		<li><u>call sym.get_password</u> - This function grabs the value from var_11h and does <i>something</i> to it. It then stores the output into var_8h. Remember when I said to look for functions in this format? This is probably what we'll do here.</li>
+		<li><u>call sym.imp.strcmp</u> - And this will compare the result of the get_password function and compare it to "youdidit". If it's successful, don't skip to the end.</li>
+		<li><u>call sys.imp.printf</u> - Finally, print out the success message if you have the right password.</li>
+		</ol>
+		
+		<p>Now you may be thinking, hmmm, we should look at the get_password function and see what it does.</p>
+		<pre><span class="radare2">[0x133713371337]></span> pdf @ sym.get_password</pre>
+		<img src="14.PNG">
+
+		<p>Ugghh, this function looks like such a pain. How do we even begin?!</p>
+		<p>What I'd recommend is spending about 10 minutes going through that function line by line and see the values that are being added and changed. Maybe an idea will come up, who knows? Just to get a feel for it.</p>
+		<br>
+		<p>There are two ways we can approach this.</p>
+		<ul>
+		<li><h4>Attempt to recreate the C code (advanced)</h4></li>
+		</ul>
+		<p>This is arguably the hardest method and requires a lot of knowledge and experience. In no way it's expected for you to do this easily. You could attempt this by 
+			slowly and with a lot of patience understand where and what the assembly instructions transfer values, to and from different registers.</p>	
+		
+		<ul>
+			<li><h4>State comparison (beginner)</h4></li>
+		</ul>
+		<p>We could try comparing the values before and after the get_password and see if we can notice a pattern. The problem with this approach is that
+			we don't know if the function adds values based on some extra element, like your computer's clock, the length of the string, the value of each individual letter. It's an unreliable
+		method but works great with more simple code and it's much faster.</p>
+		
+		<br>
+		<p>Since the password has something to do with "youdidit", typing it might just do the trick for this to work.</p>
+		<p>We'll set a breakpoint when the var_8h is assigned and compare it to "youdidit".</p>
+		
+		
+		<pre><span class="radare2">[0x133713371337]></span> db 0x558aa131c865
+<span class="radare2">[0x133713371337]></span> dc
+$ youdidit
+<span class="radare2">[0x133713371337]></span> px @ rbp-0x8</pre>
+
+		<p>Unfortunately, since var_8h was allocated dynamically (using the function malloc on get_password function) it messes up when we try to see it. This isn't what should be displayed.</p>
+		<img src="15.PNG">
+
+		<p>Instead we'll take a look at the address of the RAX register. The string is still there until now.</p>
+		<pre><span class="radare2">[0x133713371337]></span> dr</pre>
+		<img src="16.PNG">
+		<pre><span class="radare2">[0x133713371337]></span> px @ 0x55a7326386b0</pre>
+		<img src="17.PNG">
+
+		<p>Aha! This looks much better. But that doesn't seem something we can type in a terminal. Did we mess up? If we convert the hexadecimal code to ASCII 
+			(remember, ASCII text is just numbers which can be transformed to hexadecimal and vice versa), using <a href="https://www.rapidtables.com/convert/number/hex-to-ascii.html">this online tool</a>, for example,
+			we get a bunch of nonsense.</p>
+
+		<pre>8379 7f6e 736e 737e</pre>
+
+		<img src="19.PNG"> 
+
+		<p>I guess I screwed up. I should try another way. Or do I? *play Vsauce theme*</p>
+		
+		<p>Let's line up the hexadecimal code of both strings side by side. </p>
+		
+		<pre><span class="radare2">[0x133713371337]></span> px @ 0x55a731a8c914 (address is where the youdidit string is shown in main)</pre>
+		<img src="18.PNG">
+		<pre>796f 7564 6964 6974 (youdidit)
+8379 7f6e 736e 737e (?y?nsns~)</pre>
+		<p>Do you notice a pattern here? This to me screams like one. <a href="https://miniwebtool.com/hex-calculator/">A hexadecimal calculator</a> can be used to get the difference between the hex values.</p>
+		<p>(Don't include the spaces)</p>
+		<img src="20.PNG">
+		<pre>a0a0a0a0a0a0a0a</pre>
+		<p>Bingo! This is what the get_password function does! It adds the values for every other character in a string. Now we do the 
+			reverse process. If the function adds, we should then subtract that value to the hex value of youdidit and obtain the password! 
+		</p>
+		<p>This is all
+			done in order for the get_function to transform the answer to youdidit so that when it compares it will display the victory message.</p>
+
+		<img src="21.PNG">
+		
+		<p>And finally getting this value back to ASCII</p>
+		<img src="22.PNG">
+
+		<p>And of course we can double check it by running the program.</p>
+		<img src="23.PNG"> 
+		<p>Yay!</p>
+		<hr>
+
+		<p>We're finally done! I hope you learned something in this writeup. Honestly, I don't know what final message I should say here, so... yeet!</p>
+		<p>
+			Hope you had fun (or not lol) learning about the challenging world of RE. The world could always use more RE writeups. You could check a similar
+			writeup <a href="https://www.megabeets.net/a-journey-into-radare-2-part-1/">here</a>. Not the same challenge but it teaches the basics more in depth.
+		</p>
 
 		<hr >
     	<ul >
