@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Upgrade NC shell to fully interactive TTY</title>
+		<meta charset="utf-8">
+   		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+   		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="hacker.css">
+	</head>
+
+	<style>
+		ul li {
+			list-style-image: url("https://pages-themes.github.io/hacker/assets/images/bullet.png");
+		}
+		.tty pre{
+			color: white;
+		}
+
+	</style>
+
+	<body class="container">
+		<h1>How to upgrade dumb NC shell to Fully Interactive TTY shell</h1>
+		<h6>Created on 2020-08-21</h6>
+		<hr>
+		<p>Hello once again! I've seen several guides on how to upgrade an NC shell but I don't think they cover as much as they should. 
+			I'll try to be comprehensive and to the point and hope that this will potentially serve as a cheat-sheet. Let's get started.</p>
+
+		<h2># Starting point</h2>
+
+		<p>First you want to have an nc shell ready to be used.</p>
+		<img src="1.PNG">
+		<p>If you've done a lot of CTFs or boxes from services like Try Hack Me or Hack the Box you'll know that an NC shell is extremely limiting, 
+			it doesn't have any of the nice features like auto-complete, arrow navigation, command history, nothing. </p>
+		<p>The logical step after getting a shell is upgrading it to a Fully Interactive TTY and make your life a little better.</p>
+		
+		<h2># Spawning a TTY</h2>
+
+		<p>The most common way to spawn a tty is with python. However there might be a time where a machine just doesn't have python. What now?
+			Thankfully there's plenty of alternatives. Here's the list.
+		</p>
+		<div class="tty">
+			<pre>python3 -c 'import pty;pty.spawn("/bin/bash")'</pre>
+			<pre>script -qc /bin/bash /dev/null</pre>
+			<pre>echo os.system('/bin/bash')</pre>
+			<pre>perl —e 'exec "/bin/sh";'</pre>
+			<pre>perl: exec "/bin/sh";</pre>
+			<pre>ruby: exec "/bin/sh"</pre>
+			<pre>lua: os.execute('/bin/sh')</pre>
+			<pre>bash -i</pre>			
+			<pre>/bin/sh -i</pre>
+			(From within IRB)
+			<pre>exec "/bin/sh"</pre>
+			(From within vi)
+			<pre>:!bash</pre>
+			(From within vi)
+			<pre>:set shell=/bin/bash:shell</pre>
+			(From within nmap)
+			<pre>!sh</pre>
+		</div>
+
+		<a href="https://netsec.ws/?p=337">Source for most of these.</a>
+		<br><br>
+		<h2># Upgrading it</h2>
+
+		<img src="2.PNG">
+
+		<p>Great! Now we have a tty but we are not done yet. Now we can make sure the shell stays persistent and insert environmental variables to 
+			get our sweet tab auto-complete.</p>
+		<p>Go ahead and press CTRL-Z to background the shell. This won't turn off the connection. </p>
+
+		
+
+		<p>We're now back in the attacker machine. Now run:</p>
+
+		<pre>$ stty raw -echo
+$ fg</pre>
+
+
+		<p>Note that "fg" (stands for foreground) won't be displayed when you type it out. Then press ENTER again to get back to the session.</p>
+
+		<p>If for some reason that didn't work, like you were using zsh shell using this should work.</p>
+		<pre>$ stty raw -echo; fg</pre>
+		
+		<p>And now the final one.</p>
+
+		<pre>$ export TERM=xterm-256color</pre>
+		
+		<img src="4.PNG">
+
+		<p>You can easily test if it works when you try to do the "clear" command. </p>
+		<br>
+
+		<h2># Optional upgrades</h2>
+		
+		<p>While you're in the attacker machine shell type this command to get info on your shell columns and rows.</p>
+
+		<img src="5.PNG">
+		<pre>$ stty -a</pre>
+
+		<p>Then when you go back to the shell along with the export TERM command you can do these as well.</p>
+
+		<pre>$ export SHELL=bash
+$ export TERM=xterm-256color
+$ stty rows &ltnum&gt columns &ltcols&gt</pre>
+
+		<p><i>Note</i>: I noticed that after using stty raw -echo command the shell gets a lil slow. I don't know what's up with that but in any case, the stty step is
+		optional. So when you get a shell you could skip that process and just use the export TERM command because that's the one that really matters. And also
+	key navigation might just not work depending on the machine. If /bin/sh is the login shell and it's simbolically linked to dash shell you won't get key navigation. </p>
+
+		<hr>
+		<p>Anyway this is how you do it. Have fun hacking all the things with your newly acquired terminal!</p>
+		
+		<br>
+		<hr>
+    	<ul >
+        	<li><a href="https://twitter.com/An1meHacker">Twitter</a></li>
+			<li><a href="https://github.com/an1mehacker">github.com/an1mehacker</a></li>
+			<li><a href="https://github.com/pages-themes/hacker">Hacker Theme</a></li>
+		</ul>		
+	</body>
+</html>
